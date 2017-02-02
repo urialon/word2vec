@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
   char file_name[max_size], st[100][max_size];
   float dist, len, bestd[N], vec[max_size];
   long long words, size, a, b, c, d, cn, bi[100];
-  char ch;
+  //char ch;
   float *M;
   char *vocab;
   if (argc < 2) {
@@ -119,6 +119,10 @@ int main(int argc, char **argv) {
     for (a = 0; a < N; a++) bestd[a] = -1;
     for (a = 0; a < N; a++) bestw[a][0] = 0;
     for (c = 0; c < words; c++) {
+      // Uri: don't show paths as similar words
+      if (vocab[c * max_w] == '*') {
+          continue;
+      }
       a = 0;
       for (b = 0; b < cn; b++) if (bi[b] == c) a = 1;
       if (a == 1) continue;
