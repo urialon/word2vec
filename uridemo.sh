@@ -19,10 +19,11 @@ NEG=5
 HS=0
 SAMPLE=0
 MIN_COUNT=200
-PATHS_MIN_COUNT=0
+PATHS_MIN_COUNT=200
 ITER=5
 
-MODEL=js${length}x${width}_cbow${CBOW}_hs${HS}_neg${NEG}_sample${SAMPLE}_mincount${MIN_COUNT}_pathsmincount${PATHS_MIN_COUNT}_iter${ITER}
+DESC=js${length}x${width}_cbow${CBOW}_hs${HS}_neg${NEG}_sample${SAMPLE}_mincount${MIN_COUNT}_pathsmincount${PATHS_MIN_COUNT}_iter${ITER}
+MODEL=js_cbow${CBOW}_hs${HS}
 TEXT_DATA=../UnuglifyJS/glove_models/jsnice_training_clean${length}x${width}.txt
 VOCAB_FILE=models/$MODEL/vocab.txt
 VECTOR_DATA=models/$MODEL/vectors.bin
@@ -33,6 +34,9 @@ fi
 cd models
 if [ ! -d "$MODEL" ]; then
   mkdir $MODEL
+  cd $MODEL
+  echo $DESC > description.txt
+  cd ..
 fi
 cd ..
 
