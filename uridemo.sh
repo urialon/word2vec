@@ -14,7 +14,7 @@ DATA_DIR=data
 BIN_DIR=bin
 SRC_DIR=src
 
-CBOW=1
+CBOW=0
 NEG=5
 HS=0
 SAMPLE=0
@@ -42,10 +42,8 @@ cd ..
 
 pushd ${SRC_DIR} && make; popd
 
-time $BIN_DIR/word2vec -train $TEXT_DATA -output $VECTOR_DATA -cbow $CBOW -size 150 -window 1 -negative $NEG -hs $HS -sample $SAMPLE -threads 64 -binary 1 -min-count $MIN_COUNT #-read-vocab $VOCAB_FILE
+time $BIN_DIR/word2vec -train $TEXT_DATA -output $VECTOR_DATA -cbow $CBOW -size 150 -window 1 -negative $NEG -hs $HS -sample $SAMPLE -threads 64 -binary 1 -min-count $MIN_COUNT -save-vocab $VOCAB_FILE
 
-  
-echo -----------------------------------------------------------------------------------------------------
-echo -- distance...
+
 
 #$BIN_DIR/distance $VECTOR_DATA
