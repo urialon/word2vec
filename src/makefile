@@ -4,9 +4,9 @@ CFLAGS = -lm -pthread -O3 -march=native -Wall -funroll-loops -Wno-unused-result
 BIN_DIR=../bin
 
 all: word2vec word2phrase distance word-analogy compute-accuracy
-
+# -g -v -da -Q
 word2vec : word2vec.c
-	$(CC) word2vec.c -o ${BIN_DIR}/word2vec $(CFLAGS)
+	$(CC) word2vec.c -o ${BIN_DIR}/word2vec $(CFLAGS) 
 word2phrase : word2phrase.c
 	$(CC) word2phrase.c -o ${BIN_DIR}/word2phrase $(CFLAGS)
 distance : distance.c

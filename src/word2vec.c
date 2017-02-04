@@ -147,22 +147,34 @@ void SortVocab() {
   unsigned int hash;
   // Sort the vocabulary and keep </s> at the first position
   qsort(&vocab[1], vocab_size - 1, sizeof(struct vocab_word), VocabCompare);
-  for (a = 0; a < vocab_hash_size; a++) vocab_hash[a] = -1;
+  //for (a = 0; a < vocab_hash_size; a++) vocab_hash[a] = -1;
   size = vocab_size;
   train_words = 0;
   for (a = 0; a < size; a++) {
     // Words occuring less than min_count times will be discarded from the vocab
-    if (((vocab[a].cn < min_count) && (a != 0) && (vocab[a].word[0] != '*')) || ((vocab[a].cn < paths_min_count) && (vocab[a].word[0] == '*') && (a != 0))) {
+    if ((vocab[a].cn < min_count) && (a != 0) && (vocab[a].word != NULL) && ((vocab[a].word)[0] != '*')) {
       vocab_size--;
       free(vocab[a].word);
-    } else {
-      // Hash will be re-computed, as after the sorting it is not actual
+      vocab[a].word = NULL;
+      // Uri - setting cn to -1 so it will be last
+      vocab[a].cn = -1;
+    } 
+  }
+  /*
+   * Uri: re-sorting, rehashing
+  /*
+  /***********************************************************************/
+  qsort(&vocab[1], size - 1, sizeof(struct vocab_word), VocabCompare);
+  for (a = 0; a < vocab_hash_size; a++) vocab_hash[a] = -1;
+  for (a = 0; a < size; a++) {
+    if (vocab[a].cn > -1) {
       hash=GetWordHash(vocab[a].word);
       while (vocab_hash[hash] != -1) hash = (hash + 1) % vocab_hash_size;
       vocab_hash[hash] = a;
       train_words += vocab[a].cn;
-    }
+    } 
   }
+  /***********************************************************************/
   vocab = (struct vocab_word *)realloc(vocab, (vocab_size + 1) * sizeof(struct vocab_word));
   // Allocate memory for the binary tree construction
   for (a = 0; a < vocab_size; a++) {
@@ -286,7 +298,9 @@ void LearnVocabFromTrainFile() {
     } else vocab[i].cn++;
     if (vocab_size > vocab_hash_size * 0.7) ReduceVocab();
   }
+  printf("Sorting vocab...\n");
   SortVocab();
+  printf("Successfully sorted vocab\n");
   if (debug_mode > 0) {
     printf("Vocab size: %lld\n", vocab_size);
     printf("Words in train file: %lld\n", train_words);
@@ -547,20 +561,34 @@ void TrainModel() {
   pthread_t *pt = (pthread_t *)malloc(num_threads * sizeof(pthread_t));
   printf("Starting training using file %s\n", train_file);
   starting_alpha = alpha;
-  if (read_vocab_file[0] != 0) ReadVocab(); else LearnVocabFromTrainFile();
-  if (save_vocab_file[0] != 0) SaveVocab();
+  if (read_vocab_file[0] != 0) {
+      ReadVocab(); 
+      printf("Successfully read vocab from file\n");
+  } else {
+      LearnVocabFromTrainFile();
+      printf("Successfully learned vocab from training data\n");
+  }
+  if (save_vocab_file[0] != 0) {
+      SaveVocab();
+      printf("Successfully saved vocab to file\n");
+  }
   if (output_file[0] == 0) return;
   InitNet();
+  printf("Successfully initialized network\n");
   if (negative > 0) InitUnigramTable();
+  printf("Successfully initialized unigram table\n");
   start = clock();
   for (a = 0; a < num_threads; a++) pthread_create(&pt[a], NULL, TrainModelThread, (void *)a);
+  printf("Successfully created threads\n");
   for (a = 0; a < num_threads; a++) pthread_join(pt[a], NULL);
   fo = fopen(output_file, "wb");
   if (classes == 0) {
     // Save the word vectors
     fprintf(fo, "%lld %lld\n", vocab_size, layer1_size);
     for (a = 0; a < vocab_size; a++) {
-      fprintf(fo, "%s ", vocab[a].word);
+      if (vocab[a].word != NULL) {
+          fprintf(fo, "%s ", vocab[a].word);
+      }
       if (binary) for (b = 0; b < layer1_size; b++) fwrite(&syn0[a * layer1_size + b], sizeof(real), 1, fo);
       else for (b = 0; b < layer1_size; b++) fprintf(fo, "%lf ", syn0[a * layer1_size + b]);
       fprintf(fo, "\n");
